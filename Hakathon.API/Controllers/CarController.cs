@@ -1,4 +1,8 @@
-﻿using Hakathon.Application.Cars;
+﻿using Hakathon.API.infrastructure.PresentationDTOs;
+using Hakathon.API.infrastructure.validators;
+using Hakathon.Application.Cards;
+using Hakathon.Application.Cars;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -18,7 +22,7 @@ namespace Hakathon.API.Controllers
         
         [HttpGet("user")]
         public async Task<IActionResult> GetUserCars(CancellationToken cancellationToken)
-        {
+        {            
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdClaim == null)
                 return Unauthorized("User ID not found in token.");
@@ -30,11 +34,15 @@ namespace Hakathon.API.Controllers
             return Ok(cars);
         }
         [HttpPost]
-        public async Task<IActionResult> AddCard([FromBody] CarCreateDTO card, CancellationToken cancellationToken)
+        public async Task<IActionResult> AddCard([FromBody] CarDTO car, CancellationToken cancellationToken)
         {
-            if (card == null)
-                return BadRequest("Invalid data.");
-            await _carService.AddCarAsync(card, cancellationToken);
+            var validator = new CarDTOValidator();
+            if (car == null|| !validator.Validate(car).IsValid)
+                return BadRequest("Invalid data.");                        
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var carcreate = car.Adapt<CarCreateDTO>();
+            carcreate.UserId = int.Parse(userIdClaim);
+            await _carService.AddCarAsync(carcreate, cancellationToken);
             return Ok();
         }
     }

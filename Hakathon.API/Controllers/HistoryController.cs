@@ -2,6 +2,9 @@
 using Hakathon.Application.Histories;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Mapster;
+using Hakathon.API.infrastructure.PresentationDTOs;
+using Hakathon.API.infrastructure.validators;
 namespace Hakathon.API.Controllers
 {
 
@@ -24,13 +27,16 @@ namespace Hakathon.API.Controllers
             return Ok();
         }
         [HttpPost]
-        public async Task<IActionResult> CreateHistory([FromBody] HistoryCreateDTO historyDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> CreateHistory([FromBody] HistoryRequestDTO historyDto, CancellationToken cancellationToken)
         {
-            if (historyDto == null)
+            var validator = new HistoryRequestDTOValidator();
+            if (historyDto == null||!validator.Validate(historyDto).IsValid)
                 return BadRequest("Invalid data.");
-
-            await _historyService.CreateHistoryAsync(historyDto, cancellationToken);
-            return Ok(new { Message = "History entry created successfully." });
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var historycreate = historyDto.Adapt<HistoryCreateDTO>();
+            historycreate.UserId = int.Parse(userIdClaim);
+            int id = await _historyService.CreateHistoryAsync(historycreate, cancellationToken);
+            return Ok(id);
         }
         
         [HttpGet("user")]

@@ -1,4 +1,5 @@
 ﻿using Hakathon.Application.Cards;
+using Hakathon.Application.Cars;
 using Hakathon.Application.Repositories;
 using Hakathon.Domain;
 using Mapster;
@@ -9,10 +10,12 @@ namespace Hakathon.Application.Histories
     {
         private readonly IHistoryRepository _repository;
         private readonly ICardService _cardService;
-        public HistoryService(IHistoryRepository repository,ICardService cardService)
+        private readonly ICarService _carService;
+        public HistoryService(IHistoryRepository repository,ICardService cardService,ICarService carService)
         {
             _repository = repository;
             _cardService = cardService;
+            _carService = carService;
         }
         public async Task<int> CreateHistoryAsync(HistoryCreateDTO historyDto, CancellationToken cancellationToken)
         {

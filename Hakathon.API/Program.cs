@@ -4,6 +4,9 @@ using Hakathon.API.infrastructure.Auth;
 using Hakathon.persistance.context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 namespace Hakathon.API
 {
     public class Program
@@ -18,6 +21,7 @@ namespace Hakathon.API
             builder.Services.AddDbContext<HakathonContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString(nameof(ConnectionStrings.DefaultConnection))));
             builder.Services.AddTokenAuthentication(builder.Configuration.GetSection(nameof(JWTConfiguration)).GetSection(nameof(JWTConfiguration.Secret)).Value);
             builder.Services.AddServices();
+            builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
             var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
 
